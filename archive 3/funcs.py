@@ -290,7 +290,8 @@ def flocking(boids: np.ndarray,
              coeffs: np.ndarray,
              asp: float,
              vrange: tuple,
-             order: int):
+             order: int,
+             **other):
     """
     The function `flocking` calculates the movement of boids based on cohesion, alignment, separation,
     and wall avoidance behaviors within a specified perception range.
@@ -323,10 +324,20 @@ def flocking(boids: np.ndarray,
     the `better_walls`
     :type order: int
     """
+
     D = distances(boids[:, 0:2])
     N = boids.shape[0]
-    D[range(N), range(N)] = perception + 1
-    mask = D < perception
+    D[range(N), range(N)] = perception + 1 
+    
+    max_cnt = other["cnt_rely_on"]
+    for i in range(N):
+        destance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1]))
+        destance_per_leader[max_cnt:,:1] = 0 
+        destance_per_leader = np.array(sorted(destance_per_leader, key =  lambda x: x[0]) )
+        D[i] = destance_per_leader[:,1]
+
+    mask = D < perception # расстояния до первой птицы 
+
     wal = better_walls(boids, asp, order)
     for i in range(N):
         if not np.any(mask[i]):

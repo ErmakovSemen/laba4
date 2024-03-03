@@ -1,11 +1,12 @@
 import numpy as np
+import random
 from vispy import app, scene
 from vispy.geometry import Rect
 from funcs import init_boids, directions, propagate, flocking
 app.use_app('PyQt5')
 
 w, h = 1280, 960
-N = 500
+N = 100
 dt = 0.1
 asp = w / h
 perception = 1/20
@@ -55,9 +56,12 @@ arrows = scene.Arrow(arrows=directions(boids, dt),
 
 
 def update(event):
-    flocking(boids, perception, coeffs, asp, vrange, better_walls_w)
+    flocking(boids, perception, coeffs, asp, vrange, better_walls_w, cnt_rely_on = 5)
     propagate(boids, dt, vrange, arange)
     color1 = (0,1,0)
+    
+    color_arr = [color_dict[random.choice(list(color_dict.keys()))]]*len(boids)
+    arrows.arrow_color = color_arr
     arrows.set_data(arrows=directions(boids, dt))
     canvas.update()
 
