@@ -362,3 +362,18 @@ def flocking(boids: np.ndarray,
             }
 
 
+def periodic_walls(boids: np.ndarray, asp: float):
+    """Sets the position of boids with respect to periodic walls for them to not fly away"""
+    boids[:, 0:2] %= np.array([asp, 1.])
+
+
+
+def wall_avoidance(boids: np.ndarray, asp: float):
+    """Implements wall avoidance component in acceleration logic for boids"""
+    left = np.abs(boids[:, 0])
+    right = np.abs(asp - boids[:, 0])
+    bottom = np.abs(boids[:, 1])
+    top = np.abs(1 - boids[:, 1])
+    ax = 1. / left**2 - 1. / right**2
+    ay = 1. / bottom**2 - 1. / top**2
+    boids[:, 4:6] += np.column_stack((ax, ay))

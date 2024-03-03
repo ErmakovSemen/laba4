@@ -2,7 +2,7 @@ import numpy as np
 import random
 from vispy import app, scene
 from vispy.geometry import Rect
-from funcs import init_boids, directions, propagate, flocking
+from funcs import init_boids, directions, propagate, flocking, periodic_walls, wall_avoidance
 app.use_app('PyQt5')
 
 w, h = 1280, 960
@@ -58,12 +58,14 @@ arrows = scene.Arrow(arrows=directions(boids, dt),
 def update(event):
     calculated_data = flocking(boids, perception, coeffs, asp, vrange, better_walls_w, cnt_rely_on = 5)
     propagate(boids, dt, vrange, arange)
+    periodic_walls(boids, asp)
+    wall_avoidance(boids, asp)
     print(calculated_data["mask_see"].shape)
     color_arr = np.array([color_dict["white"]]*N)
 
-    # for i in calculated_data["mask_see"][0]:
-    color_arr[calculated_data["mask_see"][0]] =  color_dict["yellow"]
-    color_arr[calculated_data["mask_rely"][0]] =  color_dict["green"]
+
+    color_arr[calculated_data["mask_see"][0]] =  color_dict["green"]
+    color_arr[calculated_data["mask_rely"][0]] =  color_dict["yellow"]
     
     # color_arr = [color_dict[random.choice(list(color_dict.keys()))]]*len(boids)
         
