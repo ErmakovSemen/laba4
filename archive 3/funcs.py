@@ -331,14 +331,15 @@ def flocking(boids: np.ndarray,
     
 
     mask = D < perception 
-    
+    # print(D)
+    # print("---->>")
     max_cnt = other["cnt_rely_on"]
     for i in range(N):
-        destance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1])) # 
-        destance_per_leader[max_cnt:,:1] = 0 
-        destance_per_leader = np.array(sorted(destance_per_leader, key =  lambda x: x[0]) )
-        D[i] = destance_per_leader[:,1]
-
+        distance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1])) # 
+        distance_per_leader[max_cnt:,1] = 100
+        distance_per_leader = np.array(sorted(distance_per_leader, key =  lambda x: x[0]))
+        D[i] = distance_per_leader[:,1]
+    # print(D)
     mask_rely = D < perception 
 
 

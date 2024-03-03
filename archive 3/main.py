@@ -6,16 +6,16 @@ from funcs import init_boids, directions, propagate, flocking, periodic_walls, w
 app.use_app('PyQt5')
 
 w, h = 1280, 960
-N = 200
+N = 500
 dt = 0.1
 asp = w / h
-perception = 1/5
+perception = 1/20
 # walls_order = 8
 better_walls_w = 0.05
 vrange=(0, 0.1)
 arange=(0, 0.05)
 
-cnt_in_a_view = 10
+# cnt_in_a_view = 10
 cnt_rely_on = 5
 
 #                    c      a    s      w
@@ -56,10 +56,10 @@ arrows = scene.Arrow(arrows=directions(boids, dt),
 
 
 def update(event):
-    calculated_data = flocking(boids, perception, coeffs, asp, vrange, better_walls_w, cnt_rely_on = 5)
+    calculated_data = flocking(boids, perception, coeffs, asp, vrange, better_walls_w, cnt_rely_on = cnt_rely_on)
     propagate(boids, dt, vrange, arange)
-    periodic_walls(boids, asp)
-    wall_avoidance(boids, asp)
+    # periodic_walls(boids, asp)
+    # wall_avoidance(boids, asp)
     print(calculated_data["mask_see"].shape)
     color_arr = np.array([color_dict["white"]]*N)
 
