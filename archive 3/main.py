@@ -2,7 +2,7 @@ import numpy as np
 from vispy import app, scene
 from vispy.geometry import Rect
 from funcs import init_boids, directions, propagate, flocking
-app.use_app('pyglet')
+app.use_app('PyQt5')
 
 w, h = 1280, 960
 N = 500
