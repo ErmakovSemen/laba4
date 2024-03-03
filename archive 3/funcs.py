@@ -329,14 +329,19 @@ def flocking(boids: np.ndarray,
     N = boids.shape[0]
     D[range(N), range(N)] = perception + 1 
     
+
+    mask = D < perception 
+    
     max_cnt = other["cnt_rely_on"]
     for i in range(N):
-        destance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1]))
+        destance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1])) # 
         destance_per_leader[max_cnt:,:1] = 0 
         destance_per_leader = np.array(sorted(destance_per_leader, key =  lambda x: x[0]) )
         D[i] = destance_per_leader[:,1]
+    
+    mask_rely = D < perception 
 
-    mask = D < perception # расстояния до первой птицы 
+
 
     wal = better_walls(boids, asp, order)
     for i in range(N):
@@ -351,3 +356,6 @@ def flocking(boids: np.ndarray,
         a = coeffs[0] * coh + coeffs[1] * alg + \
             coeffs[2] * sep + coeffs[3] * wal[i]
         boids[i, 4:6] = a
+    return {"mask_rely": mask_rely, "mask_see" : mask}
+
+

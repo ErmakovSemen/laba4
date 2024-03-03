@@ -33,7 +33,7 @@ view.camera = scene.PanZoomCamera(rect=Rect(0, 0, asp, 1))
 
 color_dict = {"red":(1, 0, 0, 1), "green": (0, 1, 0, 1), "yellow": (1, 1, 0, 1), "white" : (1, 1, 1, 1)}
 
-color_arr = [color_dict["yellow"]]*len(boids)
+color_arr = [color_dict["yellow"]]*N
 
 color_arr[0] = color_dict["red"]
 
@@ -56,11 +56,16 @@ arrows = scene.Arrow(arrows=directions(boids, dt),
 
 
 def update(event):
-    flocking(boids, perception, coeffs, asp, vrange, better_walls_w, cnt_rely_on = 5)
+    calculated_data = flocking(boids, perception, coeffs, asp, vrange, better_walls_w, cnt_rely_on = 5)
     propagate(boids, dt, vrange, arange)
-    color1 = (0,1,0)
+
+    color_arr = np.array([color_dict["white"]]*N)
+    for i in calculated_data["mask_see"]:
+        color_arr[i] =  color_dict["yellow"]
     
-    color_arr = [color_dict[random.choice(list(color_dict.keys()))]]*len(boids)
+    # color_arr = [color_dict[random.choice(list(color_dict.keys()))]]*len(boids)
+        
+    color_arr[0] = color_dict["red"]
     arrows.arrow_color = color_arr
     arrows.set_data(arrows=directions(boids, dt))
     canvas.update()
