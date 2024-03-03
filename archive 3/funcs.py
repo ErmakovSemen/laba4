@@ -338,7 +338,7 @@ def flocking(boids: np.ndarray,
         destance_per_leader[max_cnt:,:1] = 0 
         destance_per_leader = np.array(sorted(destance_per_leader, key =  lambda x: x[0]) )
         D[i] = destance_per_leader[:,1]
-    
+
     mask_rely = D < perception 
 
 
@@ -356,6 +356,9 @@ def flocking(boids: np.ndarray,
         a = coeffs[0] * coh + coeffs[1] * alg + \
             coeffs[2] * sep + coeffs[3] * wal[i]
         boids[i, 4:6] = a
-    return {"mask_rely": mask_rely, "mask_see" : mask}
+    return {
+            "mask_rely": mask_rely,
+            "mask_see" : mask
+            }
 
 
