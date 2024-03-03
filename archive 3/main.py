@@ -14,6 +14,9 @@ better_walls_w = 0.05
 vrange=(0, 0.1)
 arange=(0, 0.05)
 
+cnt_in_a_view = 10
+cnt_rely_on = 5
+
 #                    c      a    s      w
 coeffs = np.array([0.05, 0.02,   0.1,  0.03])
 
@@ -26,8 +29,25 @@ init_boids(boids, asp, vrange=vrange)
 canvas = scene.SceneCanvas(show=True, size=(w, h))
 view = canvas.central_widget.add_view()
 view.camera = scene.PanZoomCamera(rect=Rect(0, 0, asp, 1))
+
+color_dict = {"red":(1, 0, 0, 1), "green": (0, 1, 0, 1), "yellow": (1, 1, 0, 1), "white" : (1, 1, 1, 1)}
+
+color_arr = [color_dict["yellow"]]*len(boids)
+
+color_arr[0] = color_dict["red"]
+
+# for i in range(len(color_arr)//2):
+#     color_arr[i] = color_dict["green"]
+
+    # [main - нулевая птыца]
+    # <|
+    #     is_main : 1/0 ,
+    #     color: "red",
+    #     biods: [1,13.4,3,4]
+    #     dt
+    # |>
 arrows = scene.Arrow(arrows=directions(boids, dt),
-                     arrow_color=(1, 1, 1, 1),
+                     arrow_color=color_arr,
                      # width=5,
                      arrow_size=10,
                      connect='segments',
@@ -37,6 +57,7 @@ arrows = scene.Arrow(arrows=directions(boids, dt),
 def update(event):
     flocking(boids, perception, coeffs, asp, vrange, better_walls_w)
     propagate(boids, dt, vrange, arange)
+    color1 = (0,1,0)
     arrows.set_data(arrows=directions(boids, dt))
     canvas.update()
 
