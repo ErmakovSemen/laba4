@@ -338,8 +338,7 @@ def flocking(boids: np.ndarray,
     # fill the D matrix wirh perception + 1 
     # D[range(N), range(N)] = perception + 1 
     for i in prange(N):
-        for j in range(N):
-            DistMatrix[i, j] = perception + 1
+        DistMatrix[i, i] = perception + 1
 
 
     mask = DistMatrix < perception 
@@ -349,7 +348,7 @@ def flocking(boids: np.ndarray,
     for i in range(N):
         distance_per_leader = np.array(sorted(list(enumerate(DistMatrix[i])), key =  lambda x: x[1])) # 
         distance_per_leader[max_cnt:,1] = 100
-        distance_per_leader = list(sorted(distance_per_leader, key =  lambda x: x[0]))
+        distance_per_leader = list(sorted(distance_per_leader, key =  lambda x: float(x[0])))
         for j in range(N):
             DistMatrix[i,j] = distance_per_leader[j]
     # print(D)
