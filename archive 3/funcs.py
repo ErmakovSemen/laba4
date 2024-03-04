@@ -93,7 +93,7 @@ def propagate(boids: np.ndarray,
     vclip(boids[:, 2:4], vrange)
     boids[:, 0:2] += dt * boids[:, 2:4]
 
-
+@njit()
 def distances(vecs: np.ndarray) -> np.ndarray:
     """
     The function calculates the pairwise distances between vectors in a given numpy array.
@@ -107,11 +107,14 @@ def distances(vecs: np.ndarray) -> np.ndarray:
     """
     n, m = vecs.shape
     D = np.zeros((n, n))
-    for i in prange(n):
-        for j in range(i + 1, n):
-            D[i][j] = np.linalg.norm(vecs[i] - vecs[j])
+    for i in range(n):
+        for j in range(n):
+            s = 0
+            for k in range(m):
+                s+= (vecs[i][k]- vecs[j][k])**2
+            D[i,j] = s
     return D
-
+@njit()
 def cohesion(boids: np.ndarray,
              idx: int,
              neigh_mask: np.ndarray,
@@ -120,7 +123,7 @@ def cohesion(boids: np.ndarray,
     a = (center - boids[idx, :2]) / perception
     return a
 
-
+@njit()
 def separation(boids: np.ndarray,
                idx: int,
                neigh_mask: np.ndarray,
@@ -161,7 +164,7 @@ def separation(boids: np.ndarray,
     # d = (boids[neigh_mask, :2] - boids[idx, :2]).mean(axis=0)
     return -d  # / ((d[0] ** 2 + d[1] ** 2) + 1)
 
-
+@njit()
 def alignment(boids: np.ndarray,
               idx: int,
               neigh_mask: np.ndarray,
@@ -194,7 +197,7 @@ def alignment(boids: np.ndarray,
     v_mean = boids[neigh_mask, 2:4].mean(axis=0)
     a = (v_mean - boids[idx, 2:4]) / (2 * vrange[1])
     return a
-
+@njit()
 def walls(boids: np.ndarray, asp: float, param: int):
     """
     This function calculates the forces exerted by walls on a group of boids in a 2D space.
@@ -229,7 +232,7 @@ def walls(boids: np.ndarray, asp: float, param: int):
 
     return np.column_stack((a_left + a_right, a_bottom + a_top))
 
-
+@njit()
 def smoothstep(edge0: float, edge1: float, x: np.ndarray | float) -> np.ndarray | float:
     """
     The function `smoothstep` calculates smooth interpolation between two edges based on the input value
@@ -251,7 +254,7 @@ def smoothstep(edge0: float, edge1: float, x: np.ndarray | float) -> np.ndarray 
     x = np.clip((x - edge0) / (edge1 - edge0), 0., 1.)
     return x * x * (3.0 - 2.0 * x)
 
-
+@njit()
 def better_walls(boids: np.ndarray, asp: float, param: float):
     """
     This function calculates the influence of walls on boids' movement based on their positions and
@@ -286,7 +289,7 @@ def better_walls(boids: np.ndarray, asp: float, param: float):
 
     return np.column_stack((a_left + a_right, a_bottom + a_top))
 
-# @njit(parallel=True, cache=True)
+@njit(parallel=True)
 def flocking(boids: np.ndarray,
              perception: float,
              coeffs: np.ndarray,
@@ -327,22 +330,30 @@ def flocking(boids: np.ndarray,
     :type order: int
     """
 
-    D = distances(boids[:, 0:2])
     N = boids.shape[0]
-    D[range(N), range(N)] = perception + 1 
-    
+    DistMatrix = np.zeros((N,N))
 
-    mask = D < perception 
+    DistMatrix = distances(boids[:, 0:2])
+
+    # fill the D matrix wirh perception + 1 
+    # D[range(N), range(N)] = perception + 1 
+    for i in prange(N):
+        for j in range(N):
+            DistMatrix[i, j] = perception + 1
+
+
+    mask = DistMatrix < perception 
     # print(D)
     # print("---->>")
     max_cnt = cnt_rely_on
     for i in range(N):
-        distance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1])) # 
+        distance_per_leader = np.array(sorted(list(enumerate(DistMatrix[i])), key =  lambda x: x[1])) # 
         distance_per_leader[max_cnt:,1] = 100
-        distance_per_leader = np.array(sorted(distance_per_leader, key =  lambda x: x[0]))
-        D[i] = distance_per_leader[:,1]
+        distance_per_leader = list(sorted(distance_per_leader, key =  lambda x: x[0]))
+        for j in range(N):
+            DistMatrix[i,j] = distance_per_leader[j]
     # print(D)
-    mask_rely = D < perception 
+    mask_rely = DistMatrix < perception 
 
 
 

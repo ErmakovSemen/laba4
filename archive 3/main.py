@@ -6,17 +6,17 @@ from funcs import init_boids, directions, propagate, flocking, periodic_walls, w
 app.use_app('PyQt5')
 
 w, h = 1500, 800
-N = 50
+N = 500
 dt = 0.1
 asp = w / h
-perception = 1/3
+perception = 1/20
 # walls_order = 8
 better_walls_w = 0.05
 vrange=(0, 0.1)
 arange=(0, 0.01)
 
 # cnt_in_a_view = 10
-cnt_rely_on = 2
+cnt_rely_on = 10
 
 #                    c      a    s      w
 coeffs = np.array([0.05, 0.02,   0.1,  0.03])
