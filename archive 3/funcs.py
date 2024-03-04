@@ -1,5 +1,5 @@
 import numpy as np
-
+from numba import njit, prange
 
 def init_boids(boids: np.ndarray, asp: float, vrange: tuple[float, float]):
     """
@@ -106,8 +106,10 @@ def distances(vecs: np.ndarray) -> np.ndarray:
     the distance between the vectors at indices `i` and `j` in the input array `vecs`.
     """
     n, m = vecs.shape
-    delta = vecs.reshape((n, 1, m)) - vecs.reshape((1, n, m))
-    D = np.linalg.norm(delta, axis=2)
+    D = np.zeros((n, n))
+    for i in prange(n):
+        for j in range(i + 1, n):
+            D[i][j] = np.linalg.norm(vecs[i] - vecs[j])
     return D
 
 def cohesion(boids: np.ndarray,
@@ -284,14 +286,14 @@ def better_walls(boids: np.ndarray, asp: float, param: float):
 
     return np.column_stack((a_left + a_right, a_bottom + a_top))
 
-
+# @njit(parallel=True, cache=True)
 def flocking(boids: np.ndarray,
              perception: float,
              coeffs: np.ndarray,
              asp: float,
              vrange: tuple,
              order: int,
-             **other):
+             cnt_rely_on: int):
     """
     The function `flocking` calculates the movement of boids based on cohesion, alignment, separation,
     and wall avoidance behaviors within a specified perception range.
@@ -333,7 +335,7 @@ def flocking(boids: np.ndarray,
     mask = D < perception 
     # print(D)
     # print("---->>")
-    max_cnt = other["cnt_rely_on"]
+    max_cnt = cnt_rely_on
     for i in range(N):
         distance_per_leader = np.array(sorted(list(enumerate(D[i])), key =  lambda x: x[1])) # 
         distance_per_leader[max_cnt:,1] = 100
@@ -345,7 +347,7 @@ def flocking(boids: np.ndarray,
 
 
     wal = better_walls(boids, asp, order)
-    for i in range(N):
+    for i in prange(N):
         if not np.any(mask[i]):
             coh = np.zeros(2)
             alg = np.zeros(2)
