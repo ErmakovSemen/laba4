@@ -6,10 +6,10 @@ from funcs import init_boids, directions, propagate, flocking, periodic_walls, w
 app.use_app('PyQt5')
 
 w, h = 1500, 800
-N = 500
-dt = 0.1
+N = 1000
+dt = 0.01
 asp = w / h
-perception = 1/20
+perception = 1/6
 # walls_order = 8
 better_walls_w = 0.05
 vrange=(0, 0.1)

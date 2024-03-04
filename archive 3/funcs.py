@@ -112,17 +112,31 @@ def distances(vecs: np.ndarray) -> np.ndarray:
             s = 0
             for k in range(m):
                 s+= (vecs[i][k]- vecs[j][k])**2
-            D[i,j] = s
+            D[i,j] = np.sqrt(s)
     return D
 @njit()
 def cohesion(boids: np.ndarray,
              idx: int,
              neigh_mask: np.ndarray,
              perception: float) -> np.ndarray:
-    center = boids[neigh_mask, :2].mean(axis=0)
+    center =np.mean(boids[neigh_mask, :2])
     a = (center - boids[idx, :2]) / perception
     return a
 
+@njit()
+def norm(vec: np.ndarray) -> np.ndarray:
+    """
+    The function `norm` calculates the norm of vectors in a given numpy array.
+    
+    :param vecs: The `vecs` parameter is a NumPy array containing vectors. The function `norm` calculates
+    the norm of all vectors in the input array
+    :type vecs: np.ndarray
+    :return: The function `norm` takes an input numpy array `vecs` and calculates the norm of the vectors
+    in the array. It returns a numpy array `norms` where `norms[i]` represents the norm of the vector at
+    index `i` in the input array `vecs`.
+    """
+
+    return sum([c**2 for c in vec])**0.5
 @njit()
 def separation(boids: np.ndarray,
                idx: int,
@@ -152,17 +166,13 @@ def separation(boids: np.ndarray,
     the mean direction of separation from the neighboring boids. The returned vector is normalized to
     have a magnitude of 1.
     """
-    neighbs = boids[neigh_mask, :2] - boids[idx, :2]
-    norm = np.linalg.norm(neighbs, axis=1)
-    mask = norm > 0
-    if np.any(mask):
-        neighbs[mask] /= norm[mask].reshape(-1, 1)
-    d = neighbs.mean(axis=0)
-    norm_d = np.linalg.norm(d)
-    if norm_d > 0:
-        d /= norm_d
-    # d = (boids[neigh_mask, :2] - boids[idx, :2]).mean(axis=0)
-    return -d  # / ((d[0] ** 2 + d[1] ** 2) + 1)
+    # Calculate the mean displacement in x and y directions among neighbors
+    dx = np.mean(boids[neigh_mask, 0] - boids[idx, 0])
+    dy = np.mean(boids[neigh_mask, 1] - boids[idx, 1])
+
+    # Calculate the separation vector, considering the square of the distance for normalization and avoiding division by zero
+    length_squared = dx ** 2 + dy ** 2 + 1  # Add 1 to avoid division by zero
+    return -np.array([dx, dy]) / length_squared
 
 @njit()
 def alignment(boids: np.ndarray,
@@ -194,7 +204,7 @@ def alignment(boids: np.ndarray,
     applied by the walls on all boids. The `smoothstep` function returns a numpy array or float
     depending on the input type, after applying the smoothstep function to the input values.
     """
-    v_mean = boids[neigh_mask, 2:4].mean(axis=0)
+    v_mean = np.mean(boids[neigh_mask, 2:4])
     a = (v_mean - boids[idx, 2:4]) / (2 * vrange[1])
     return a
 @njit()
@@ -346,11 +356,9 @@ def flocking(boids: np.ndarray,
     # print("---->>")
     max_cnt = cnt_rely_on
     for i in range(N):
-        distance_per_leader = np.array(sorted(list(enumerate(DistMatrix[i])), key =  lambda x: x[1])) # 
-        distance_per_leader[max_cnt:,1] = 100
-        distance_per_leader = list(sorted(distance_per_leader, key =  lambda x: float(x[0])))
-        for j in range(N):
-            DistMatrix[i,j] = distance_per_leader[j]
+        sorted_indices = np.argsort(DistMatrix[i])
+        DistMatrix[i, sorted_indices[max_cnt:]] = 100
+
     # print(D)
     mask_rely = DistMatrix < perception 
 
